@@ -1,51 +1,108 @@
-import { LinearScale } from '@mui/icons-material';
-import { CategoryScale, Legend, PointElement, Tooltip, Chart as ChartJS } from 'chart.js';
-import { useEffect } from 'react';
+import { useListState } from '@mantine/hooks';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    Title,
+    Tooltip,
+    Legend,
+    PointElement,
+    LineController,
+    LineElement,
+  } from 'chart.js';
+
 import { Line } from 'react-chartjs-2';
-import { Box } from '@mui/system';
+import { Box, IconButton } from '@mui/material';
+import { Add } from '@mui/icons-material';
+import { useEffect } from 'react';
 ChartJS.register(
     CategoryScale,
     LinearScale,
     PointElement,
+    LineController, 
+    LineElement,
+    Title,
     Tooltip,
     Legend
-  );
+);
 const options = {
-    indexAxis: 'y',
+    indexAxis: 'x',
     responsive: true,
     plugins: {
         legend: {
-            position: 'left'
-        }
-    }
-}
-
-const labels = ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022']
-
-const data = {
-    labels,
-    datasets: [
-        {
-            label: 'UFRJ',
-            data: [100000, 22200, 350000, 456677, 123000, 123330, 30000, 200000],
-            borderColor:'rgb(53, 162, 235)',
-            backgroundColor: 'rgba(53, 162, 235, 0.5)',
-            tension: 0.1,
-            fill: false
+            position: 'right',
         },
+        tooltip: {
+            position: 'nearest'
+        },
+        title: {
+            display: false,
+            text: 'Chart.js Horizontal Bar Chart',
+        },
+    },
+};
+
+function randomPastelColorRGB(){
+    var r = (Math.round(Math.random()* 127) + 127);
+    var g = (Math.round(Math.random()* 127) + 127);
+    var b = (Math.round(Math.random()* 127) + 127);
+    return [r,g,b]
+}
+
+function getRgbString(rgb, translucido) {
+    let r = rgb[0]
+    let g = rgb[1]
+    let b = rgb[2]
+    if(translucido){
+        return 'rgba(' + r + ', ' + g + ', ' + b + ', 0.5 )';
+    }
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+
+
+/*
+    [
         {
-            label: 'UFF',
-            data: [140000, 12200, 650000, 256677, 423000, 223330, 30000, 200000],
-            borderColor:'rgb(71, 188, 159)',
-            backgroundColor: 'rgba(71, 188, 159, 0.5)',  
+            universidade: UFRJ,
+            emendas: [ 2000000, ... ]
+        },
+        ...
+    ]
+*/
+function getDatasets(emendasUniversidades) {
+    const datasets = []
+    emendasUniversidades.forEach( universidade => {
+        const colorRgb = randomPastelColorRGB()
+        const color = getRgbString(colorRgb, false)
+        datasets.push({
+            label: universidade.universidade,
+            data: universidade.emendas,
+            borderColor: color,
+            backgroundColor: color,
             tension: 0.1,
             fill: false
+        })
+    })
+    return datasets
+}
+
+const LinhaHorizontal = (emendasUniversidades) => {
+    
+    const [datasets, setDatasets] = useListState([]);
+
+    useEffect(() => {
+        if(emendasUniversidades && emendasUniversidades.length > 0){
+            if(emendasUniversidades !== datasets){
+                setDatasets.setState(getDatasets(emendasUniversidades))
+            }
         }
-    ]
+    })
+   
+    return(<Box className='container-grafico'>
+            <Line data={{
+                labels: ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'],
+                datasets: datasets
+            }} options={options}/>
+         </Box>)
 }
-
-const LinhaHorizontal = () => {
-    return (<Box className='container-grafico'><Line data={data} options={options} /></Box>)
-}
-
 export default LinhaHorizontal;
