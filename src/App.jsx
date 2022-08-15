@@ -9,55 +9,9 @@ import { useListState } from '@mantine/hooks';
 
 const anos = ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'];
 
-function calculaTotalAnosUniversidade(emendas, universidade, anos) {
-  const emendasPorAnoUniversidade = []
-  anos.forEach( ano => {
-      let totalUniversidadeAno = 0
-      emendas.forEach( emenda => {
-          if (emenda.ano === ano && emenda.uo === universidade) {
-            totalUniversidadeAno += emenda.pago
-          }
-      })
-      emendasPorAnoUniversidade.push(totalUniversidadeAno)
-  })
-  /* [
-      2500000,
-        ...
-      ]
-  */
-  return emendasPorAnoUniversidade
-}
-
-
-function getTotalAnosUniversidades(emendas, universidades, anos) {
-  const emendasPorAnoUniversidades = []
-  universidades.forEach( universidade => {
-    let emendasAnosUniversidade = {
-      universidade: universidade.sigla,
-      emendas: []
-    }
-    emendasAnosUniversidade['emendas'] = calculaTotalAnosUniversidade(emendas, universidade, anos)
-    emendasPorAnoUniversidades.push(emendasAnosUniversidade)
-  })
-  /*
-  [
-    {
-      universidade: UFRJ,
-      emendas: [ 2500000, ... ]
-    },
-    {
-      universidade: UFF,
-      emendas: [ 1250000, ... ]
-    },
-    ...
-  ]
-*/
-  return emendasPorAnoUniversidades
-}
-
 function App() {
-  const [ valorAutocomplete, setValorAutocomplete ] = useState()
-  const [ universidade, setUniversidade ] = useState(null)
+  // const [ valorAutocomplete, setValorAutocomplete ] = useState()
+  const [ universidade, setUniversidade ] = useState({})
   const [ listaUniversidades, setListaUniversidades ] = useListState([])
   const [ emendas, setEmendas ] = useListState([])
   const [ universidadesSelecionadas, setUniversidadesSelecionadas ] = useListState([{
@@ -66,38 +20,110 @@ function App() {
     sigla: "UFRJ",
     uo: 26245
   }])
-  const [ autocompleteAberto, setAutocompleteAberto ] = useState(false)
-  const loading = autocompleteAberto && listaUniversidades.length === 0;
+  const [ totalAnosUniversidades, setTotalAnosUniversidades ] = useListState([])
+  const loadingUniversidades = listaUniversidades.length === 0;
+  const loadingEmendas = emendas.length === 0;
+  const loadingTotalAnosUniversidades = totalAnosUniversidades.length === 0;
+  
+  // const [ autocompleteAberto, setAutocompleteAberto ] = useState(false)
+  // const loading = autocompleteAberto && listaUniversidades.length === 0;
 
-  function handleSelecionarUniversidade(universidade) {
-    if(!(universidadesSelecionadas.includes(universidade)) && universidade !== null) {
-        setUniversidadesSelecionadas.append(universidade)
-        console.log(universidadesSelecionadas)
+  // function handleSelecionarUniversidade(universidade) {
+  //   if(!(universidadesSelecionadas.includes(universidade)) && universidade !== null) {
+  //       setUniversidadesSelecionadas.append(universidade)
+  //       console.log(universidadesSelecionadas)
+  //   }
+  // }
+
+  // function handleSetAutocompleteAberto(value) {
+  //   if (value) {
+  //     setListaUniversidades.setState(recuperaListaUniversidades())
+  //   } 
+  //   setAutocompleteAberto(value);
+  // }
+
+  async function recuperaListaUniversidades() {
+    try {
+      const arr = [] 
+      await api.get('/universidades/uo?uo=26269').then((response) => { 
+        console.log("UNI")
+        arr.push(response.data) 
+        setListaUniversidades.setState(arr)
+        console.log(listaUniversidades)
+      })
+    } catch (e) {
+      console.log(e.message)
     }
   }
 
-  function handleSetAutocompleteAberto(value) {
-    if (value) {
-      setListaUniversidades.setState(recuperaListaUniversidades())
-    } 
-    setAutocompleteAberto(value);
-  }
-
-  async function recuperaListaUniversidades() {
-    await api.get('/universidades').then((response) => { 
-      console.log("UNI")
-      console.log(response.data)
-      setListaUniversidades.setState(response.data) 
-    })
-  }
-
   async function recuperaListaEmendas() {
-    
-    await api.get('/emendas').then((response) => { 
-      console.log("emendas")
-      console.log(response.data)
-      setEmendas.setState(response.data)
+    try {
+      await api.get('/emendas/uo?uo=26269').then((response) => {
+        setEmendas.setState(response.data)
+      })
+    } catch (e) {
+      console.log(e.message)
+    }
+  }
+
+  function handleSetTotalAnosUniversidades(){
+    setTotalAnosUniversidades.setState(getTotalAnosUniversidades(emendas, listaUniversidades, anos))
+  }
+
+  function calculaTotalAnosUniversidade(emendas, universidade, anos) {
+    console.log("calculaTotalAnosUniversidade")
+    const emendasPorAnoUniversidade = []
+    console.log(emendas)
+    anos.forEach( ano => {
+        let totalUniversidadeAno = 0
+        emendas.forEach( emenda => {
+          console.log(emenda)
+          if (emenda.ano === ano && emenda.uo === universidade) {
+            console.log('pago')
+            console.log(emenda.pago)
+            totalUniversidadeAno = totalUniversidadeAno + emenda.pago
+          }
+        })
+        emendasPorAnoUniversidade.push(totalUniversidadeAno)
     })
+    /* [
+        2500000,
+          ...
+        ]
+    */
+    console.log(emendasPorAnoUniversidade)
+    return emendasPorAnoUniversidade
+  }
+  
+  function getTotalAnosUniversidades(emendas, universidades, anos) {
+    const emendasPorAnoUniversidades = []
+    if(emendas.length === 0 || universidades.length === 0) {
+      return
+    }
+    universidades.forEach( universidade => {
+      let emendasAnosUniversidade = {
+        universidade: universidade.sigla,
+        emendas: []
+      }
+      emendasAnosUniversidade['emendas'] = calculaTotalAnosUniversidade(emendas, universidade, anos)
+      emendasPorAnoUniversidades.push(emendasAnosUniversidade)
+    })
+    /*
+    [
+      {
+        universidade: UFRJ,
+        emendas: [ 2500000, ... ]
+      },
+      {
+        universidade: UFF,
+        emendas: [ 1250000, ... ]
+      },
+      ...
+    ]
+  */
+    console.log('lel')
+    console.log(emendasPorAnoUniversidades)
+    return emendasPorAnoUniversidades
   }
 
   useEffect(() => {
@@ -107,40 +133,19 @@ function App() {
     if (listaUniversidades.length === 0) {
       recuperaListaUniversidades()
     }
+    if (emendas.length > 0 && listaUniversidades.length > 0 && totalAnosUniversidades.length === 0){
+      handleSetTotalAnosUniversidades()
+    }
   })
 
-  return (<>
-    <Container className="app">
+  function handleAdicionarUniversidade() {
+
+  }
+
+  return (<Container className="app">
       <Container className='main-container' component={'main'}>
-      <Box style={{width: "100%"}}>
-        <Autocomplete
-            id="combo-box-universidades"
-            style={{float: "left", width: "94%", marginTop: "15px",marginLeft: "15px"}}
-            value={ valorAutocomplete }
-            onChange={ (event, newValue) => setValorAutocomplete(newValue) }
-            loading={ loading }
-            options={ listaUniversidades }
-            getOptionLabel={(option) => `${option.nome}`}
-            noOptionsText="Vazio"
-            renderInput={(params) => <TextField {...params} 
-                label="Universidades Federais"
-                InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                    <React.Fragment>
-                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                        {params.InputProps.endAdornment}
-                    </React.Fragment>
-                    ),
-                }}
-            />}
-            renderOption={(props, listaUniversidades) => (
-                <Box component="li" {...props} key={listaUniversidades._id}>
-                    {listaUniversidades.nome} - {listaUniversidades.sigla}
-                </Box>
-            )}
-          />
-          <IconButton style={{float: "right", marginTop: "22px"}} onClick={() => { handleSelecionarUniversidade(valorAutocomplete) }}>
+        <Box style={{width: "100%"}}>
+          <IconButton style={{float: "right", marginTop: "22px"}} onClick={() => { handleAdicionarUniversidade() }}>
               <AddTwoTone></AddTwoTone>
           </IconButton>
         </Box>
@@ -150,13 +155,12 @@ function App() {
               <Box className='header-painel' style={{ marginBottom: 10 }}>
                 <Typography component='h3' variant='h5' style={{ padding: 15 }}>Gráfico</Typography>
               </Box>
-              <LinhaHorizontal emendasUniversidades={getTotalAnosUniversidades(emendas, universidadesSelecionadas, anos)} anos={anos}/>
+              <LinhaHorizontal emendasUniversidades={setTotalAnosUniversidades} anos={anos}/>
             </Paper>
           </Grid>
         </Grid>
       </Container>
-    </Container>
-    </>);
+    </Container>);
 }
 
 export default App;

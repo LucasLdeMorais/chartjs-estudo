@@ -12,7 +12,7 @@ import {
   } from 'chart.js';
 
 import { Line } from 'react-chartjs-2';
-import { Box, IconButton } from '@mui/material';
+import { Box, IconButton, CircularProgress } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { useEffect } from 'react';
 ChartJS.register(
@@ -79,14 +79,14 @@ function getDatasets(emendasUniversidades) {
             data: universidade.emendas,
             borderColor: color,
             backgroundColor: color,
-            tension: 0.1,
+            tension: 0.2,
             fill: false
         })
     })
     return datasets
 }
 
-const LinhaHorizontal = (emendasUniversidades) => {
+function LinhaHorizontal(emendasUniversidades) {
     
     const [datasets, setDatasets] = useListState([]);
 
@@ -99,10 +99,12 @@ const LinhaHorizontal = (emendasUniversidades) => {
     })
    
     return(<Box className='container-grafico'>
-            <Line data={{
-                labels: ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'],
-                datasets: datasets
-            }} options={options}/>
+            {
+                datasets.length === 0 ? <CircularProgress color="inherit" size={40} /> : <Line data={{
+                    labels: ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'],
+                    datasets: datasets
+                }} options={options}/>
+            }
          </Box>)
 }
 export default LinhaHorizontal;
