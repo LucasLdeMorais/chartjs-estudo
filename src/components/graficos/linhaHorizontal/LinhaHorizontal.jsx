@@ -14,7 +14,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import { Box, IconButton, CircularProgress } from '@mui/material';
 import { Add } from '@mui/icons-material';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -60,44 +60,38 @@ function getRgbString(rgb, translucido) {
 }
 
 
-/*
-    [
-        {
-            universidade: UFRJ,
-            emendas: [ 2000000, ... ]
-        },
-        ...
-    ]
-*/
-function getDatasets(emendasUniversidades) {
-    const datasets = []
-    emendasUniversidades.forEach( universidade => {
-        const colorRgb = randomPastelColorRGB()
-        const color = getRgbString(colorRgb, false)
-        datasets.push({
-            label: universidade.universidade,
-            data: universidade.emendas,
-            borderColor: color,
-            backgroundColor: color,
-            tension: 0.2,
-            fill: false
-        })
-    })
-    return datasets
-}
 
-function LinhaHorizontal(emendasUniversidades) {
+function LinhaHorizontal({emendasUniversidades, anos}) {
     
-    const [datasets, setDatasets] = useListState([]);
+    const [datasets, setDatasets] = useState([]);
 
     useEffect(() => {
-        if(emendasUniversidades && emendasUniversidades.length > 0){
-            if(emendasUniversidades !== datasets){
-                setDatasets.setState(getDatasets(emendasUniversidades))
+        console.log('use effect',emendasUniversidades,anos);
+        if(emendasUniversidades && emendasUniversidades.emendas && emendasUniversidades.emendas.length > 0){
+            if(emendasUniversidades.emendas !== datasets){
+                console.log('aff');
+                getDatasets(emendasUniversidades)
             }
         }
-    })
-   
+    },[emendasUniversidades])
+
+    function getDatasets(emendasUniversidades) {
+        const datasets = []
+        console.log('emendas1 ', emendasUniversidades);
+        const values = [...new Set(emendasUniversidades.emendas)]
+            const colorRgb = randomPastelColorRGB()
+            const color = getRgbString(colorRgb, false)
+
+            datasets.push({
+                label: emendasUniversidades.universidade,
+                data: values,
+                borderColor: color,
+                backgroundColor: color,
+                tension: 0.2,
+                fill: false
+            })
+        setDatasets(datasets);
+    }
     return(<Box className='container-grafico'>
             {
                 datasets.length === 0 ? <CircularProgress color="inherit" size={40} /> : <Line data={{
