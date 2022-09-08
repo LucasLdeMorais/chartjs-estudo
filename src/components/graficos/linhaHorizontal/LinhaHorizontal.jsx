@@ -1,4 +1,3 @@
-import { useListState } from '@mantine/hooks';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -12,9 +11,9 @@ import {
   } from 'chart.js';
 
 import { Line } from 'react-chartjs-2';
-import { Box, IconButton, CircularProgress } from '@mui/material';
-import { Add } from '@mui/icons-material';
-import { useEffect } from 'react';
+import { Box, CircularProgress } from '@mui/material';
+import { useEffect, useState } from 'react';
+
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -59,49 +58,61 @@ function getRgbString(rgb, translucido) {
     return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 
-
-/*
-    [
-        {
-            universidade: UFRJ,
-            emendas: [ 2000000, ... ]
-        },
-        ...
-    ]
-*/
-function getDatasets(emendasUniversidades) {
-    const datasets = []
-    emendasUniversidades.forEach( universidade => {
-        const colorRgb = randomPastelColorRGB()
-        const color = getRgbString(colorRgb, false)
-        datasets.push({
-            label: universidade.universidade,
-            data: universidade.emendas,
-            borderColor: color,
-            backgroundColor: color,
-            tension: 0.2,
-            fill: false
-        })
-    })
-    return datasets
-}
-
-function LinhaHorizontal(emendasUniversidades) {
+function LinhaHorizontal({emendasUniversidades, anos}) {
     
-    const [datasets, setDatasets] = useListState([]);
+    const [datasets, setDatasets] = useState([]);
 
     useEffect(() => {
-        if(emendasUniversidades && emendasUniversidades.length > 0){
-            if(emendasUniversidades !== datasets){
-                setDatasets.setState(getDatasets(emendasUniversidades))
+        console.log('useEffect LinhaHorizontal',emendasUniversidades, anos);
+        if(emendasUniversidades && emendasUniversidades.emendas && emendasUniversidades.emendas.length > 0){
+            if(emendasUniversidades.emendas !== datasets){
+                console.log('gerar datasets');
+                getDatasets(emendasUniversidades)
             }
         }
-    })
-   
+    },[emendasUniversidades])
+
+    // ! Revisar
+    // * function getDatasets
+    /**
+     * @param emendasUniversidades [ ..., {
+     *      universidade: UFRJ
+     *      emendasPorAno: [ ..., 2500000, 1500000 ]
+     *    }
+     *  ]
+     * 
+     * @return [ ...,
+     *  {
+     *    label: UFRJ,
+     *    data: [ ..., 2500000, 1500000 ],
+     *    borderColor: 'rgb('150','150','150')',
+     *    backgroundColor: 'rgba('150', '150', '150', 0.5 )',
+     *    tension: 0.2,
+     *    fill: false
+     *  }
+     * ]
+     */ 
+    function getDatasets(emendasUniversidadesAnos) {
+        const datasets = []
+        emendasUniversidadesAnos.forEach( universidade => {
+            const colorRgb = randomPastelColorRGB()
+            const color = getRgbString(colorRgb, false)
+            datasets.push({
+                label: universidade.siglaUniversidade,
+                data: universidade.emendasPorAno,
+                borderColor: color,
+                backgroundColor: color,
+                tension: 0.2,
+                fill: false
+            })
+        })
+        return datasets
+    }
+
     return(<Box className='container-grafico'>
             {
                 datasets.length === 0 ? <CircularProgress color="inherit" size={40} /> : <Line data={{
-                    labels: ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'],
+                    labels: anos,
                     datasets: datasets
                 }} options={options}/>
             }
