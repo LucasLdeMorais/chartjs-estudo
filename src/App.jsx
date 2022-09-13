@@ -7,10 +7,9 @@ import api from './services/api'
 import React, { useState, useEffect, useRef } from 'react';
 import { useListState } from '@mantine/hooks';
 import SeletorUniversidades from './components/seletorUniversidades/SeletorUniversidades';
-  //! Olhar no figma exemplos de dashboard
+  // TODO: Olhar no figma exemplos de dashboard
   // TODO: Fazer ajustes relacionados ao desempenho da aplicação em redes mais lentas
-  // ? O app provavelmente deverá utilizar as funções de ciclo de vida do extends React.Component
-  // TODO: Baixar emendas de acordo com as universidades selecionadas
+    // * CHECK! TODO: Baixar emendas de acordo com as universidades selecionadas 
   // TODO: Separar emendas obtidas apartir das respectivas universidades
   // TODO: Gerar os datasets com base nas emendas obtidas
   // TODO: Passar os datasets pro componente de gráfico
@@ -52,21 +51,34 @@ function App() {
     }
   }
 
+  //! COM PROBLEMA
   async function getEmendasUniversidade(universidade) {
-    const {data} = api.get(`/emendas/uo?uo=${universidade.uo}`)
-    
-    setEmendas.append({
-      siglaUniversidade: universidade.sigla,
-      emendas: data.emendas
-    })
+    console.log(`========== Inicio getEmendasUniversidade ==========`)
+    try {
+      if (emendas.length === 0 || emendas.filter(value => value.sigla === universidade.sigla).length > 0) {
+        console.log("já tem")
+        return
+      }
+      console.log(`/emendas/uo?uo=${universidade.uo}`)
+      const {data} = await api.get(`/emendas/uo?uo=${universidade.uo}`)
+      console.log(data)
+      setEmendas.append({
+        siglaUniversidade: universidade.sigla,
+        emendas: data.emendas
+      })
+      console.log(`========== Final getEmendasUniversidade COMPLETO ==========`)
+    } catch(e) {
+      console.log(e.message)
+      console.log(`========== Final getEmendasUniversidade ERRO ==========`)
+    }
   }
 
-  // ! Revisar necessidade
+  // TODO: Revisar necessidade
   function handleSetTotalAnosUniversidades(universidades){
     universidades.forEach(universidade => calculaTotalAnosUniversidade(emendas, universidade, anos))
   }
 
-  // ! Revisar
+  // TODO: Revisar se está certinho
   // * function calculaTotalAnosUniversidade
   /**
    * @param Emendas [..., {
@@ -163,7 +175,7 @@ function App() {
     setAutocompleteAberto(value);
   }
 
-  // ! ESTÁ COM PROBLEMA
+  // ! ESTÁ COM PROBLEMA POR CONTA DO getEmendasUniversidade
   // * handleAdicionarUniversidade
   /**
    * * Inclui uma universidade na lista de universidades selecionadas, que serão exibidas no grafico
@@ -194,10 +206,9 @@ function App() {
       setUniversidadesSelecionadas.append(universidade)
       
       // Recupera a lista de emendas daquela universidade e adiciona na lista geral de emendas
-      //! não fez o log dessa função
+      //! não está atualizando o valor do state de emendas a tempo
       getEmendasUniversidade(universidade)
-      console.log(emendas)
-      
+
       // Recupera a lista de emendas daquela universidade e salva em uma variável
       const emendasUniversidade = emendas.find(emenda => emenda.siglaUniversidade === universidade.sigla).emendas
 
