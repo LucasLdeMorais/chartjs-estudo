@@ -9,7 +9,7 @@ import { useListState } from '@mantine/hooks';
 import SeletorUniversidades from './components/seletorUniversidades/SeletorUniversidades';
   //! Olhar no figma exemplos de dashboard
   // TODO: Fazer ajustes relacionados ao desempenho da aplicação em redes mais lentas
-  //    ? O app provavelmente deverá utilizar as funções de ciclo de vida do extends React.Component
+  // ? O app provavelmente deverá utilizar as funções de ciclo de vida do extends React.Component
   // TODO: Baixar emendas de acordo com as universidades selecionadas
   // TODO: Separar emendas obtidas apartir das respectivas universidades
   // TODO: Gerar os datasets com base nas emendas obtidas
@@ -54,7 +54,7 @@ function App() {
 
   async function getEmendasUniversidade(universidade) {
     const {data} = api.get(`/emendas/uo?uo=${universidade.uo}`)
-    console.log(data.emendas)
+    
     setEmendas.append({
       siglaUniversidade: universidade.sigla,
       emendas: data.emendas
@@ -96,12 +96,12 @@ function App() {
    * 
    * @param Universidade {
    *  uo: 26269,
-   *  sigla: UFRJ,
+   *  sigla: UFRJ
    * }
    * 
    * @param Anos [..., 2021, 2022]
    * 
-   * @return {
+   * @return pagoEmendasAno {
    *   siglaUniversidade: UFRJ,
    *   emendasPorAno: [100000, 22200, 350000, 456677, 123000, 123330, 30000, 200000]
    * }
@@ -126,10 +126,10 @@ function App() {
     }
   }
   
-  // * function calculaTotalAnosUniversidade
+  // * function getTotalAnosUniversidades
   /**
-    * Saída:
-    [
+   * 
+    @returns  emendasPorAnoUniversidades [
       {
         universidade: UFRJ,
         emendas: [ 2500000, ... ]
@@ -166,6 +166,7 @@ function App() {
   // ! ESTÁ COM PROBLEMA
   // * handleAdicionarUniversidade
   /**
+   * * Inclui uma universidade na lista de universidades selecionadas, que serão exibidas no grafico
    * @param universidade { 
    *   _id: 1278as5d786as5d,
    *   sigla: UFRJ,
@@ -183,8 +184,9 @@ function App() {
       console.log("==== início do handleAdicionarUniversidade ====")
       
       // Caso já tenha na lista, não faz nada
-      // ? Poderia mostrar um feedback de erro
+      // ? Poderia mostrar um feedback visual de erro
       if (universidadesSelecionadas.find(element => element === universidade)) {
+        console.log("já tem")
         return
       }
       
@@ -194,11 +196,14 @@ function App() {
       // Recupera a lista de emendas daquela universidade e adiciona na lista geral de emendas
       //! não fez o log dessa função
       getEmendasUniversidade(universidade)
+      console.log(emendas)
+      
       // Recupera a lista de emendas daquela universidade e salva em uma variável
       const emendasUniversidade = emendas.find(emenda => emenda.siglaUniversidade === universidade.sigla).emendas
 
       // Calcula o total pago em cada ano e adiciona na lista de valores pagos por ano (contém todas universidades selecionadas)
-      setEmendasAnoUniversidades.append(calculaTotalAnosUniversidade(emendasUniversidade, universidade, anos))
+      let TotalAnosUniversidade = calculaTotalAnosUniversidade(emendasUniversidade, universidade, anos)
+      setEmendasAnoUniversidades.append(TotalAnosUniversidade)
       console.log(emendasAnoUniversidades)
       console.log("==== final do handleAdicionarUniversidade ====")
     } catch (e) {
@@ -206,19 +211,15 @@ function App() {
     }
   }
 
+  // TODO: utilizar essa função de remoção da lista de universidadesSelecionadas no gráfico
   // * handleRemoverUniversidade
   /**
+   * * Remove uma universidade do vetor de universidades selecionadas e suas respectivas emendas para fins de performance
    * @param universidade { 
    *   _id: 1278as5d786as5d,
    *   sigla: UFRJ,
    *   uo: 26269
    * }
-   * @returns emendasAnoUniversidades [
-   *  {
-   *    siglaUniversidade: UFRJ,
-   *    emendasPorAno: [100000, 22200, 350000, 456677, 123000, 123330, 30000, 200000]
-   *  }
-   * ]
    */
   function handleRemoverUniversidade(universidade) {
     try {
