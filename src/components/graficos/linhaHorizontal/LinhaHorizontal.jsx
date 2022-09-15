@@ -13,6 +13,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import { Box, CircularProgress } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { useListState } from '@mantine/hooks';
 
 ChartJS.register(
     CategoryScale,
@@ -60,15 +61,17 @@ function getRgbString(rgb, translucido) {
 
 function LinhaHorizontal({emendasUniversidades, anos}) {
     
-    const [datasets, setDatasets] = useState([]);
+    const [datasets, setDatasets] = useListState([]);
 
     useEffect(() => {
         console.log('useEffect LinhaHorizontal',emendasUniversidades, anos);
-        if(emendasUniversidades && emendasUniversidades.emendas && emendasUniversidades.emendas.length > 0){
-            if(emendasUniversidades.emendas !== datasets){
-                console.log('gerar datasets');
-                getDatasets(emendasUniversidades)
-            }
+        if(emendasUniversidades && emendasUniversidades.length > 0){
+            emendasUniversidades.forEach(universidade => {
+                if(datasets.filter(dataset => universidade.siglaUniversidade === dataset.label).length === 0){
+                    getDataset(universidade)
+                }
+            })
+            
         }
     },[emendasUniversidades])
 
@@ -92,30 +95,24 @@ function LinhaHorizontal({emendasUniversidades, anos}) {
      *  }
      * ]
      */ 
-    function getDatasets(emendasUniversidadesAnos) {
-        const datasets = []
-        emendasUniversidadesAnos.forEach( universidade => {
-            const colorRgb = randomPastelColorRGB()
-            const color = getRgbString(colorRgb, false)
-            datasets.push({
-                label: universidade.siglaUniversidade,
-                data: universidade.emendasPorAno,
-                borderColor: color,
-                backgroundColor: color,
-                tension: 0.2,
-                fill: false
-            })
+    function getDataset(universidade) {
+        const colorRgb = randomPastelColorRGB()
+        const color = getRgbString(colorRgb, false)
+        setDatasets.append({
+            label: universidade.siglaUniversidade,
+            data: universidade.pagoEmendasAno,
+            borderColor: color,
+            backgroundColor: color,
+            tension: 0.2,
+            fill: false
         })
-        return datasets
     }
 
     return(<Box className='container-grafico'>
-            {
-                datasets.length === 0 ? <CircularProgress color="inherit" size={40} /> : <Line data={{
+                { datasets.length > 0 ? <Line data={{
                     labels: anos,
                     datasets: datasets
-                }} options={options}/>
-            }
+                }} options={options}/> : <></>}
          </Box>)
 }
 export default LinhaHorizontal;

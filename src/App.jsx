@@ -33,7 +33,10 @@ function App() {
 
   async function recuperaListaUniversidades() {
     try {
-      const {data} = await api.get('/universidades')
+      const data = await api.get('/universidades').then( response => {
+        return response.data
+      })
+      
       setListaUniversidades.setState(data)
       console.log(listaUniversidades)
     } catch (e) {
@@ -55,18 +58,21 @@ function App() {
   async function getEmendasUniversidade(universidade) {
     console.log(`========== Inicio getEmendasUniversidade ==========`)
     try {
-      if (emendas.length === 0 || emendas.filter(value => value.sigla === universidade.sigla).length > 0) {
+      if (emendas.includes(value => value.sigla === universidade.sigla)) {
         console.log("já tem")
         return
       }
       console.log(`/emendas/uo?uo=${universidade.uo}`)
+
       const {data} = await api.get(`/emendas/uo?uo=${universidade.uo}`)
+
       console.log(data)
       setEmendas.append({
         siglaUniversidade: universidade.sigla,
         emendas: data.emendas
       })
       console.log(`========== Final getEmendasUniversidade COMPLETO ==========`)
+      return data.emendas
     } catch(e) {
       console.log(e.message)
       console.log(`========== Final getEmendasUniversidade ERRO ==========`)
@@ -125,7 +131,7 @@ function App() {
     anos.forEach( ano => {
         let totalAno = 0
         emendas.forEach( emenda => {
-          if (emenda.ano === ano && emenda.nroUo === universidade.uo) {
+          if (emenda.ano.toString() === ano && emenda.nroUo === universidade.uo) {
             totalAno = totalAno + emenda.pago
           }
         })
@@ -191,7 +197,7 @@ function App() {
    *  }
    * ]
    */
-  function handleAdicionarUniversidade(universidade) {
+  async function handleAdicionarUniversidade(universidade) {
     try {
       console.log("==== início do handleAdicionarUniversidade ====")
       
@@ -207,13 +213,14 @@ function App() {
       
       // Recupera a lista de emendas daquela universidade e adiciona na lista geral de emendas
       //! não está atualizando o valor do state de emendas a tempo
-      getEmendasUniversidade(universidade)
-
+      const emendasUniversidade = await getEmendasUniversidade(universidade)
+      
       // Recupera a lista de emendas daquela universidade e salva em uma variável
-      const emendasUniversidade = emendas.find(emenda => emenda.siglaUniversidade === universidade.sigla).emendas
+      // const emendasUniversidade = emendas.find(emenda => emenda.siglaUniversidade === universidade.sigla).emendas
 
       // Calcula o total pago em cada ano e adiciona na lista de valores pagos por ano (contém todas universidades selecionadas)
       let TotalAnosUniversidade = calculaTotalAnosUniversidade(emendasUniversidade, universidade, anos)
+      
       setEmendasAnoUniversidades.append(TotalAnosUniversidade)
       console.log(emendasAnoUniversidades)
       console.log("==== final do handleAdicionarUniversidade ====")
@@ -295,7 +302,9 @@ function App() {
             <Box className='header-painel' style={{ marginBottom: 10 }}>
               <Typography component='h3' variant='h5' style={{ padding: 15 }}>Gráfico</Typography>
             </Box>
-            <LinhaHorizontal emendasUniversidades={emendasAnoUniversidades} anos={anos}/>
+            {
+              emendasAnoUniversidades.length > 0 ? <LinhaHorizontal emendasUniversidades={emendasAnoUniversidades} anos={anos}/> : <CircularProgress color="inherit" size={40} />
+            }
           </Paper>
         </Grid>
       </Grid>
