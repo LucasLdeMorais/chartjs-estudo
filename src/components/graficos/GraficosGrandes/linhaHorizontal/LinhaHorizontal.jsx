@@ -67,11 +67,11 @@ function LinhaHorizontal({emendasUniversidades, anos}) {
         console.log('useEffect LinhaHorizontal',emendasUniversidades, anos);
         if(emendasUniversidades && emendasUniversidades.length > 0){
             emendasUniversidades.forEach(universidade => {
-                if(datasets.filter(dataset => universidade.siglaUniversidade === dataset.label).length === 0){
-                    getDataset(universidade)
+                if(!datasets.includes(dataset => universidade.siglaUniversidade === dataset.label)){
+                    const dataset = getDataset(universidade)
+                    setDatasets.append(dataset)
                 }
             })
-            
         }
     },[emendasUniversidades])
 
@@ -98,14 +98,14 @@ function LinhaHorizontal({emendasUniversidades, anos}) {
     function getDataset(universidade) {
         const colorRgb = randomPastelColorRGB()
         const color = getRgbString(colorRgb, false)
-        setDatasets.append({
+        return {
             label: universidade.siglaUniversidade,
             data: universidade.pagoEmendasAno,
             borderColor: color,
             backgroundColor: color,
             tension: 0.2,
             fill: false
-        })
+        }
     }
 
     return(<Box className='container-grafico'>

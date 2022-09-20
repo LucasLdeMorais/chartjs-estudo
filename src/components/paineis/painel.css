@@ -1,0 +1,26 @@
+.paper-painel {
+    min-height: 360px;
+}
+
+.painelCriacao {
+    background-color: gray !important; 
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 360px;
+}
+
+.header-painel {
+    background-color: darkcyan;
+    min-height: 40px;
+    max-height: max-content;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    color: whitesmoke;
+    padding: 5px;
+}
+
+.conteudo-painel {
+    min-height: max-content;
+    padding: 5px;
+}

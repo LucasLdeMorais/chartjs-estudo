@@ -1,12 +1,16 @@
 import './App.css';
 import { Box, Container } from '@mui/system';
-import { Autocomplete, CircularProgress, Grid, IconButton, Paper, TextField, Typography } from '@mui/material';
+import { Autocomplete, CardActionArea, CardContent, CircularProgress, Grid, IconButton, Paper, TextField, Typography } from '@mui/material';
 import { AddTwoTone } from '@mui/icons-material';
-import LinhaHorizontal from './components/graficos/linhaHorizontal/LinhaHorizontal';
+import LinhaHorizontal from './components/graficos/GraficosGrandes/linhaHorizontal/LinhaHorizontal';
 import api from './services/api'
 import React, { useState, useEffect, useRef } from 'react';
 import { useListState } from '@mantine/hooks';
 import SeletorUniversidades from './components/seletorUniversidades/SeletorUniversidades';
+import GraficoTorta from './components/graficos/GraficosPequenos/pieChart/GraficoTorta';
+import Painel from './components/paineis/Painel';
+import SeletorAnos from './components/seletorAnos/SeletorAnos';
+import GraficoTortaDemo from './components/graficos/GraficosPequenos/pieChart/GraficoTortaDemo';
   // TODO: Olhar no figma exemplos de dashboard
   // TODO: Fazer ajustes relacionados ao desempenho da aplicação em redes mais lentas
     // * CHECK! TODO: Baixar emendas de acordo com as universidades selecionadas 
@@ -19,16 +23,32 @@ function App() {
   const [ universidade, setUniversidade ] = useState({})
   const [ listaUniversidades, setListaUniversidades ] = useListState([])
   const [ emendas, setEmendas ] = useListState([])
-  const [ datasets, setDatasets ] = useListState([]);
+  const [ listaPaineis, updateListaPaineis ] = useListState([
+    {
+        titulo: "UFRJ",
+        componente: <><GraficoTortaDemo/><GraficoTortaDemo/></>,
+        tamanho: "grande"
+    },
+    {
+        titulo: "UNIRIO",
+        componente: <><GraficoTortaDemo/><GraficoTortaDemo/></>,
+        tamanho: "grande"
+    },
+    {
+        titulo: "UFRRJ",
+        componente: <><GraficoTortaDemo/><GraficoTortaDemo/></>,
+        tamanho: "grande"
+    }
+])
+  const [ anoSelecionado, setAnoSelecionado ] = useState(0)
   const [ universidadesSelecionadas, setUniversidadesSelecionadas ] = useListState([])
   const [ emendasAnoUniversidades, setEmendasAnoUniversidades ] = useListState([])
   const shoudLog = useRef(true)
   const loadingUniversidades = listaUniversidades.length === 0;
   const loadingEmendas = emendas.length === 0;
-  const loadingEmendasAnoUniversidades = emendasAnoUniversidades.length === 0;
+  const loadingGrafico = universidadesSelecionadas.length > 0;
   const [ valorAutocomplete, setValorAutocomplete ] = useState()
   const [ autocompleteAberto, setAutocompleteAberto ] = useState(false)
-  const loading = autocompleteAberto && listaUniversidades.length === 0;
   const anos = ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022']
 
   async function recuperaListaUniversidades() {
@@ -54,7 +74,6 @@ function App() {
     }
   }
 
-  //! COM PROBLEMA
   async function getEmendasUniversidade(universidade) {
     console.log(`========== Inicio getEmendasUniversidade ==========`)
     try {
@@ -181,7 +200,15 @@ function App() {
     setAutocompleteAberto(value);
   }
 
-  // ! ESTÁ COM PROBLEMA POR CONTA DO getEmendasUniversidade
+  function adicionarPainel(universidade, emendasUniversidade) {
+    const painel = {
+        titulo: universidade.sigla,
+        componente: <><GraficoTortaDemo/><GraficoTortaDemo/><GraficoTortaDemo/></>,
+        tamanho: "grande"
+    }
+    updateListaPaineis.append(painel)
+  }
+
   // * handleAdicionarUniversidade
   /**
    * * Inclui uma universidade na lista de universidades selecionadas, que serão exibidas no grafico
@@ -212,11 +239,10 @@ function App() {
       setUniversidadesSelecionadas.append(universidade)
       
       // Recupera a lista de emendas daquela universidade e adiciona na lista geral de emendas
-      //! não está atualizando o valor do state de emendas a tempo
       const emendasUniversidade = await getEmendasUniversidade(universidade)
-      
-      // Recupera a lista de emendas daquela universidade e salva em uma variável
-      // const emendasUniversidade = emendas.find(emenda => emenda.siglaUniversidade === universidade.sigla).emendas
+
+      // Cria um painel que mostra dados de partidos que mais deram dinheiro e quais são as despesas que mais recebem
+      adicionarPainel(universidade, emendasUniversidade)
 
       // Calcula o total pago em cada ano e adiciona na lista de valores pagos por ano (contém todas universidades selecionadas)
       let TotalAnosUniversidade = calculaTotalAnosUniversidade(emendasUniversidade, universidade, anos)
@@ -298,15 +324,23 @@ function App() {
       </Box>
       <Grid container spacing={2} className='grid-principal'>
         <Grid item xs={12}>
-          <Paper className='painel' elevation={3}>
+          <Paper className='painelGrafico' elevation={3}>
             <Box className='header-painel' style={{ marginBottom: 10 }}>
               <Typography component='h3' variant='h5' style={{ padding: 15 }}>Gráfico</Typography>
             </Box>
             {
-              emendasAnoUniversidades.length > 0 ? <LinhaHorizontal emendasUniversidades={emendasAnoUniversidades} anos={anos}/> : <CircularProgress color="inherit" size={40} />
+              emendasAnoUniversidades.length > 0 ? <LinhaHorizontal emendasUniversidades={emendasAnoUniversidades} anos={anos}/> : <Box className='loadingGrafico'> {loadingGrafico ? <CircularProgress color="inherit" size={40} /> : <></>} </Box>
             }
           </Paper>
         </Grid>
+        <Grid container spacing={2} justify="center" className='containerAnos'>
+          <SeletorAnos setAnoSelecionado={setAnoSelecionado} anoSelecionado={anoSelecionado} anos={anos}/>
+        </Grid>
+        {
+          listaPaineis.map((item, indice) => {
+            return <Painel titulo={ item.titulo } removivel removerItem={handleRemoverUniversidade} tamanho={ item.tamanho } componente={ item.componente } indice={ indice } />
+          })
+        }
       </Grid>
     </Container>
   </Container>);
