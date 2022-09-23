@@ -1,5 +1,5 @@
 .paper-painel {
-    min-height: 360px;
+    height: max-content;
 }
 
 .painelCriacao {

@@ -1,10 +1,27 @@
+// TODO: O objetivo aqui é ter uma gráfico de pizza que mostra quanto do valor pago foi destinado para cada tipo de despesa
 import React from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 import { Box } from '@mui/system';
 import "./graficoTorta.css";
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend, Title);
+const options = {
+indexAxis: 'x',
+responsive: true,
+plugins: {
+    legend: {
+        position: 'right',
+    },
+    tooltip: {
+        position: 'nearest'
+    },
+    title: {
+        display: true,
+        text: 'Chart.js Pie Chart',
+    },
+},
+};
 
 const data = {
   labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
@@ -33,8 +50,33 @@ const data = {
   ],
 };
 
-export default function GraficoTortaDemo() {
-  return <Box className='container-grafico-torta'>
-    <Pie data={data} />
+function randomPastelColorRGB(){
+    var r = (Math.round(Math.random()* 127) + 127);
+    var g = (Math.round(Math.random()* 127) + 127);
+    var b = (Math.round(Math.random()* 127) + 127);
+    return [r,g,b]
+}
+
+function getRgbString(rgb, translucido) {
+    let r = rgb[0]
+    let g = rgb[1]
+    let b = rgb[2]
+    if(translucido){
+        return 'rgba(' + r + ', ' + g + ', ' + b + ', 0.5 )';
+    }
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+
+function getDatasets() {
+
+}
+
+function getLabels() {
+    
+}
+
+export default function GraficoTortaDemo({styleBox, styleGrafico, dados}) {
+  return <Box className='container-grafico-torta' style={styleBox}>
+    <Pie data={data} options={options} style={styleGrafico}/>
   </Box>;
 }

@@ -16,19 +16,29 @@ function handleTamanho(tamanho) {
     }
 }
 
-const Painel = ({tamanho, componente, indice, removerItem, removivel, titulo, style}) => {
+const Painel = ({tamanho, componente, header, indice, removerItem, removivel, titulo, style}) => {
     return <Grid item xs={handleTamanho(tamanho)} key={indice}>
         <Paper style={style} className='paper-painel' elevation={2}>
-            <Box className='header-painel' style={{ marginBottom: 10 }}>
-                <Typography style={{float:"left", padding: 5, paddingLeft: 10}} component='h3' variant='h8'>{titulo}</Typography>
-                { removivel? <IconButton style={{float:"right"}} onClick={(e) => {
+            {
+                header? <Box className='header-painel' style={{ marginBottom: 10 }}>
+                    <Typography style={{float:"left", padding: 5, paddingLeft: 10}} component='h3' variant='h8'>{titulo}</Typography>
+                    { 
+                        removivel? <IconButton style={{float:"right"}} onClick={(e) => {
+                                e.preventDefault();
+                                removerItem(indice);
+                            }}>
+                            <CloseTwoTone/>
+                        </IconButton> : <></>
+                    }
+                </Box> : <> {
+                    removivel? <IconButton style={{float:"right"}} onClick={(e) => {
                             e.preventDefault();
                             removerItem(indice);
                         }}>
                         <CloseTwoTone/>
                     </IconButton> : <></>
-                }
-            </Box>
+                } </>
+            }
             <Box className='conteudo-painel' style={{ marginBottom: 10 }}>
                 {componente}
             </Box>

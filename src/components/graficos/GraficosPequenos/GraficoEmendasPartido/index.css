@@ -1,0 +1,9 @@
+.chartTitle {
+    margin-bottom: 20px;
+}
+.container-grafico-emendas-partido {
+    width: 35%;
+    padding-left: 0;
+    display: inline-block;
+    margin-left: 8px;
+}

@@ -11,6 +11,8 @@ import GraficoTorta from './components/graficos/GraficosPequenos/pieChart/Grafic
 import Painel from './components/paineis/Painel';
 import SeletorAnos from './components/seletorAnos/SeletorAnos';
 import GraficoTortaDemo from './components/graficos/GraficosPequenos/pieChart/GraficoTortaDemo';
+import PainelSemUniversidadeSelecionada from './components/PainelComparativo/PainelSemUniversidadeSelecionada/PainelSemUniversidadeSelecionada';
+import PainelDetalhesUniversidade from './components/PainelComparativo/PainelDetalhesUniversidade';
   // TODO: Olhar no figma exemplos de dashboard
   // TODO: Fazer ajustes relacionados ao desempenho da aplicação em redes mais lentas
     // * CHECK! TODO: Baixar emendas de acordo com as universidades selecionadas 
@@ -18,28 +20,14 @@ import GraficoTortaDemo from './components/graficos/GraficosPequenos/pieChart/Gr
   // TODO: Gerar os datasets com base nas emendas obtidas
   // TODO: Passar os datasets pro componente de gráfico
   // TODO: Documentar todas as funções e só manter o que está sendo utilizado de fato
+  //! TODO: Colocar o display de paineis separado
+  //! TODO: Seletor de anos por painel com menu dropdown
 
 function App() {
   const [ universidade, setUniversidade ] = useState({})
   const [ listaUniversidades, setListaUniversidades ] = useListState([])
   const [ emendas, setEmendas ] = useListState([])
-  const [ listaPaineis, updateListaPaineis ] = useListState([
-    {
-        titulo: "UFRJ",
-        componente: <><GraficoTortaDemo/><GraficoTortaDemo/></>,
-        tamanho: "grande"
-    },
-    {
-        titulo: "UNIRIO",
-        componente: <><GraficoTortaDemo/><GraficoTortaDemo/></>,
-        tamanho: "grande"
-    },
-    {
-        titulo: "UFRRJ",
-        componente: <><GraficoTortaDemo/><GraficoTortaDemo/></>,
-        tamanho: "grande"
-    }
-])
+  const [ listaPaineis, updateListaPaineis ] = useListState([])
   const [ anoSelecionado, setAnoSelecionado ] = useState(0)
   const [ universidadesSelecionadas, setUniversidadesSelecionadas ] = useListState([])
   const [ emendasAnoUniversidades, setEmendasAnoUniversidades ] = useListState([])
@@ -199,12 +187,11 @@ function App() {
   function handleSetAutocompleteAberto(value) {
     setAutocompleteAberto(value);
   }
-
+  
+  // TODO: Colocar o dislay de paineis separado
   function adicionarPainel(universidade, emendasUniversidade) {
     const painel = {
-        titulo: universidade.sigla,
-        componente: <><GraficoTortaDemo/><GraficoTortaDemo/><GraficoTortaDemo/></>,
-        tamanho: "grande"
+        titulo: universidade.sigla
     }
     updateListaPaineis.append(painel)
   }
@@ -329,17 +316,28 @@ function App() {
               <Typography component='h3' variant='h5' style={{ padding: 15 }}>Gráfico</Typography>
             </Box>
             {
-              emendasAnoUniversidades.length > 0 ? <LinhaHorizontal emendasUniversidades={emendasAnoUniversidades} anos={anos}/> : <Box className='loadingGrafico'> {loadingGrafico ? <CircularProgress color="inherit" size={40} /> : <></>} </Box>
+              emendasAnoUniversidades.length > 0 ? <LinhaHorizontal styleGrafico={{maxHeight: "300px"}} emendasUniversidades={emendasAnoUniversidades} anos={anos}/> : 
+              <> 
+                { 
+                  loadingGrafico ? <Box className='loadingGrafico'>
+                    <CircularProgress color="inherit" size={40} />
+                  </Box> : <Box style={{height: "50px", color: "grey", marginTop: "20px", marginLeft: "25%"}}>
+                    <Typography variant="h5">Adicione uma Universidade ao gráfico</Typography>
+                  </Box>
+                }
+              </> 
             }
           </Paper>
         </Grid>
-        <Grid container spacing={2} justify="center" className='containerAnos'>
-          <SeletorAnos setAnoSelecionado={setAnoSelecionado} anoSelecionado={anoSelecionado} anos={anos}/>
-        </Grid>
+        {/** <Grid container spacing={2} justify="center" className='containerAnos'>
+         *    <SeletorAnos setAnoSelecionado={setAnoSelecionado} anoSelecionado={anoSelecionado} anos={anos}/>
+         * </Grid> 
+         * */}
         {
-          listaPaineis.map((item, indice) => {
-            return <Painel titulo={ item.titulo } removivel removerItem={handleRemoverUniversidade} tamanho={ item.tamanho } componente={ item.componente } indice={ indice } />
-          })
+          listaPaineis.length > 0 ? listaPaineis.map((item, indice) => {
+            return <PainelDetalhesUniversidade titulo={ item.titulo } handleRemover={handleRemoverUniversidade} indice={ indice } emendasUniversidade={
+              emendas.find(emenda => emenda.siglaUniversidade === item.titulo).emendas}/> //<Painel titulo={ item.titulo } header removivel removerItem={handleRemoverUniversidade} tamanho={ item.tamanho } componente={ item.componente } indice={ indice } />
+          }) : <PainelSemUniversidadeSelecionada />
         }
       </Grid>
     </Container>
